@@ -1,0 +1,146 @@
+{
+  "name": "1.n8n sending emails",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_EMPLOYEE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Employee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_EMPLOYEE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_EMPLOYEE_SHEET_ID/edit#gid=0"
+        },
+        "event": "rowUpdate",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "887ba94f-b920-4234-be8d-bdd2c690064c",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_TRIGGER_CREDENTIAL_ID",
+          "name": "Google Sheets Trigger account 3"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=you are an expert operation manager and professional business communicator.\nwrite a professional and ersonalised email based on the following information:\nEmployee Name: {{ $json.Name }}\nEmployee Email:{{ $json.Email }}\nEmployee Task:{{ $json.Task }}\n\n\nRequirements: strat dircetly with email body no extra starting and ending paragraphs.\nend exactly like this\nBest regards,\n{{ $env.SENDER_NAME }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3de7a3f5-6398-4a29-823c-52bb9b3a30a7",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Email }}",
+        "subject": "={{ $('Google Sheets Trigger').item.json.Task }} - {{ $('Google Sheets Trigger').item.json.Deadline }}",
+        "emailType": "text",
+        "message": "={{ $json.output[0].content[0].text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "085a8bb2-6d64-424f-9020-68d6b0d16713",
+      "name": "Send a message",
+      "webhookId": "YOUR_WEBHOOK_ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID_1",
+          "name": "Gmail account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "34d9278a-e516-472c-8b5f-5ae36621cbca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "REPLACE_WITH_YOUR_N8N_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "id": "YOUR_WORKFLOW_ID",
+  "tags": []
+}
